@@ -1,0 +1,70 @@
+{% extends "home/base.html" %}
+{% load tmdb_filters %}
+
+{% block title %}Watchlist{% endblock %}
+
+{% block main %}
+    <style>
+        header {
+            font-family: 'Fairwater Script'; 
+        }
+        
+    </style>
+    <header class="navbar navbar-dark" style="background: url('https://img.freepik.com/free-vector/film-strip-with-light-effect-cinema-background_1017-38171.jpg') no-repeat center center fixed; background-size: cover; height: 250px; display: flex; justify-content: space-between; align-items: flex-start; padding: 20px;">
+        <div>
+            <a href="/" style="text-decoration: none; color: grey;">
+                <h1 style="font-size: 70px; font-weight: bold; margin: 0; color: grey;"><i>Movie App</i></h1>
+            </a>
+        </div>
+        <form action="/search/" method="get" class="d-flex" style="align-items: flex-start; margin-right: 20px;">
+            <select class="form-select" name="type" style="width: 80px; height: 30px; margin-right: 10px; font-size: 12px; color: grey;">
+                <option value="movie">Movie</option>
+                <option value="tv">Tv Show</option>
+            </select>
+            <input type="text" class="form-control" placeholder="Search" name="q" style="height: 30px; width: 70%; max-width: 400px; color: grey;">
+            <button type="submit" class="btn btn-danger" style="height: 30px;">Go</button>
+        </form>
+    </header>
+    <br>
+    <h2>Watchlist</h2>
+
+    <div class="row">
+        {% for item in watchlist_items %}
+            <div class="card" style="width: 20rem;">
+                {% if item.movie_id %}
+                    {% with movie_data=item.movie_id|tmdb_movie_url %}
+                        <img src="https://image.tmdb.org/t/p/w200{{ movie_data.poster_path }}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            {% if movie_data.title %}
+                                <h5 class="card-title">{{ movie_data.title }}</h5>
+                            {% else %}
+                                <h5 class="card-title">Movie Title Not Found</h5>
+                            {% endif %}
+                            <p class="card-text">{{ movie_data.overview }}</p>
+                            <a href="/movie/{{ movie_data.id }}/" class="btn btn-primary">View Details</a>
+                            <br>
+                            <br>
+                            <a href="{% url 'remove_from_watchlist' item.id %}" class="btn btn-danger">Remove from Watchlist</a>
+                        </div>
+                    {% endwith %}
+                {% elif item.tv_show_id %}
+                    {% with tv_data=item.tv_show_id|tmdb_tv_url %}
+                        <img src="https://image.tmdb.org/t/p/w200{{ tv_data.poster_path }}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            {% if tv_data.name %}
+                                <h5 class="card-title">{{ tv_data.name }}</h5>
+                            {% else %}
+                                <h5 class="card-title">TV Show Name Not Found</h5>
+                            {% endif %}
+                            <p class="card-text">{{ tv_data.overview }}</p>
+                            <a href="/tv/{{ tv_data.id }}/" class="btn btn-primary">View Details</a>
+                            <br>
+                            <br>
+                            <a href="{% url 'remove_from_watchlist' item.id %}" class="btn btn-danger">Remove from Watchlist</a>
+                        </div>
+                    {% endwith %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

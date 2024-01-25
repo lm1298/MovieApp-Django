@@ -1,0 +1,112 @@
+{% extends "home/base.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+    <style>
+        header {
+            font-family: 'Fairwater Script'; 
+        }
+        
+    </style>
+    <header class="navbar navbar-dark" style="background: url('https://img.freepik.com/free-vector/film-strip-with-light-effect-cinema-background_1017-38171.jpg') no-repeat center center fixed; background-size: cover; height: 250px; display: flex; justify-content: space-between; align-items: flex-start; padding: 20px;">
+        <div>
+            <a href="/" style="text-decoration: none; color: grey;">
+                <h1 style="font-size: 70px; font-weight: bold; margin: 0; color: grey;"><i>Movie App</i></h1>
+            </a>
+        </div>
+        <form action="/search/" method="get" class="d-flex" style="align-items: flex-start; margin-left: -1050px; margin-top: 160px;">
+            <select class="form-select" name="type" style="width: 80px; height: 30px; margin-right: 10px; font-size: 12px; color: grey;">
+                <option value="movie">Movie</option>
+                <option value="tv">Tv Show</option>
+            </select>
+            <input type="text" class="form-control" placeholder="Search" name="q" style="height: 30px; width: 180px; max-width: 400px; color: grey;">
+            <button type="submit" class="btn btn-danger" style="height: 30px;">Go</button>
+        </form>
+        {% if user.is_authenticated %}
+        <div style="color: white; font-size: 25px; margin-top: 10px;">
+            <i>Welcome, {{ user.username }}</i>
+            <br>
+            <a href="{% url 'watchlist' %}" style="color: white; margin-right: 0px; font-size: 16px; margin-top: 5px;">My Watchlist</a>
+            <br>
+            <br>
+            <br>
+            <a href="{% url 'logout' %}" style="color: white; margin-right: 0px; font-size: 16px; margin-top: 5px;">Logout</a>
+        </div>
+        {% else %}
+            <a href="{% url 'login' %}" style="color: white; margin-right: 150px; font-size: 16px;"><i>Login</i></a>
+        {% endif %}
+    </header>
+
+    <br>
+    <h2>Trending</h2>
+    <div class="input-group mb-3">
+        <select class="form-select" id="media_type">
+          <option value="all" selected>All</option>
+          <option value="movie">Movies</option>
+          <option value="tv">TV Shows</option>
+        </select>
+    </div>
+    <div id="trendings" class="row"></div>
+
+    <script>
+        fetchTrendingResults("all", "week")
+
+        var mediaType = document.getElementById("media_type")
+        mediaType.addEventListener("change", function(event) {
+            fetchTrendingResults(mediaType.options[mediaType.selectedIndex].value, "day")
+        })
+
+        function fetchTrendingResults(media_type, time_window) {
+            var trendingDiv = document.getElementById("trendings")
+            trendingDiv.innerHTML = ""
+
+            fetch(`/api/trendings?media_type=${media_type}&time_window=${time_window}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                for (let i=0; i<data.results.length; i++) {
+                    var mainDiv = document.createElement("div");
+                    mainDiv.setAttribute("class", "card");
+                    mainDiv.setAttribute("style", "width: 20rem;");
+                    var img = document.createElement("img");
+                    img.setAttribute("src", "https://image.tmdb.org/t/p/w200" + data.results[i].poster_path);
+                    img.setAttribute("class", "card-img-top");
+                    img.setAttribute("alt", "...");
+                    var body = document.createElement("div");
+                    body.setAttribute("class", "card-body");
+                    var title = document.createElement("h5");
+                    title.setAttribute("class", "card-title");
+                    if (data.results[i].name) {
+                        title.innerHTML = data.results[i].name;
+                    } else {
+                        title.innerHTML = data.results[i].title;
+                    }
+                    var text = document.createElement("p");
+                    text.setAttribute("class", "card-text");
+                    text.innerHTML = data.results[i].overview;
+                    var link = document.createElement("a");
+                    link.setAttribute("href", "/" + data.results[i].media_type + "/" + data.results[i].id + "/");
+                    link.setAttribute("class", "btn btn-primary");
+                    link.innerHTML = "View Details";
+                    body.appendChild(title);
+                    body.appendChild(text);
+                    body.appendChild(link);
+                    mainDiv.appendChild(img);
+                    mainDiv.appendChild(body);
+                    document.getElementById("trendings").appendChild(mainDiv);
+                }
+            })
+        }
+
+    </script>
+
+{% endblock %}
+
+

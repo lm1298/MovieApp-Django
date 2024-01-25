@@ -1,0 +1,95 @@
+{% extends "home/base.html" %}
+
+{% block title %}
+    Results
+{% endblock %}
+
+{% block main %}
+    <style>
+        header {
+            font-family: 'Fairwater Script'; 
+        }
+        
+    </style>
+    <header class="navbar navbar-dark" style="background: url('https://img.freepik.com/free-vector/film-strip-with-light-effect-cinema-background_1017-38171.jpg') no-repeat center center fixed; background-size: cover; height: 250px; display: flex; justify-content: space-between; align-items: flex-start; padding: 20px;">
+        <div>
+            <a href="/" style="text-decoration: none; color: grey;">
+                <h1 style="font-size: 70px; font-weight: bold; margin: 0; color: grey;"><i>Movie App</i></h1>
+            </a>
+        </div>
+        <form action="/search/" method="get" class="d-flex" style="align-items: flex-start; margin-right: 20px;">
+            <select class="form-select" name="type" style="width: 80px; height: 30px; margin-right: 10px; font-size: 12px; color: grey;">
+                <option value="movie">Movie</option>
+                <option value="tv">Tv Show</option>
+            </select>
+            <input type="text" class="form-control" placeholder="Search" name="q" style="height: 30px; width: 70%; max-width: 400px; color: grey;">
+            <button type="submit" class="btn btn-danger" style="height: 30px;">Go</button>
+        </form>
+    </header>
+
+    <br>
+    <h1>{{ data.name }}</h1>
+    <h4 style="color:grey;"><i>~{{ data.tagline}}</i></h4>
+    <img src="https://image.tmdb.org/t/p/w200{{ data.poster_path }}" alt="...">
+    <h2>Networks</h2>
+    {% for n in data.networks %}
+        <h3>{{ n.name }}</h3>
+        <img src="https://image.tmdb.org/t/p/w200/{{ n.logo_path }}" alt="...">
+    {% endfor %}
+
+    <h2>Comments</h2>
+    
+    <a href="{% url 'comment_page2' tv_id=data.id %}">
+        <button class="btn btn-primary">View Comments</button>
+    </a> 
+    <!-- home/templates/home/tv_details.html -->
+    {% if user.is_authenticated %}
+    <a href="{% url 'add_tv_to_watchlist' tv_id=data.id %}">
+        <button class="btn btn-primary">Add to Watchlist</button>
+    </a>
+    
+
+    {% endif %}
+      
+    <hr>
+    <h2>Genres</h2>
+    <ul>
+        {% for g in data.genres %}
+            <li>{{ g.name }}</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <h2>Languages</h2>
+    <ul>
+        {% for l in data.languages %}
+            <li>{{ l }}</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <h2>Last episode as of today</h2>
+    <p>
+        <strong>Air date:</strong> {{ data.last_episode_to_air.air_date }} <br>
+        <strong>Episode number:</strong> {{ data.last_episode_to_air.episode_number }} <br>
+        <strong>Name: </strong> {{ data.last_episode_to_air.name }} <br>
+        <strong>Overview: </strong> {{ data.last_episode_to_air.overview }} <br>
+    </p>
+    <hr>
+    <h2>Recommendations</h2>
+    <div class="row">
+        {% for m in recommendations.results %}
+            <div class="card" style="width: 20rem;">
+                <img src="https://image.tmdb.org/t/p/w200{{ m.poster_path }}" class="card-img-top" alt="...">
+                <div class="card-body">
+                {% if not m.name %}
+                    <h5 class="card-title">{{ m.title }}</h5>
+                {% else %}
+                    <h5 class="card-title">{{ m.name }}</h5>
+                {% endif %}
+                <p class="card-text">{{ m.overview }}</p>
+                <a href="/{{ type }}/{{ m.id }}/" class="btn btn-primary">View Details</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}

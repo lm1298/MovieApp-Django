@@ -1,0 +1,29 @@
+{% extends "home/base.html" %}
+{% load bootstrap4 %}
+{% block title %}Login{% endblock %}
+
+{% block main %}
+<style>
+    header {
+        font-family: 'Fairwater Script'; 
+    }
+    
+</style>
+<header class="navbar navbar-dark" style="background: url('https://img.freepik.com/free-vector/film-strip-with-light-effect-cinema-background_1017-38171.jpg') no-repeat center center fixed; background-size: cover; height: 250px; display: flex; justify-content: space-between; align-items: flex-start; padding: 20px;">
+    <div>
+        <a href="/" style="text-decoration: none; color: grey;">
+            <h1 style="font-size: 70px; font-weight: bold; margin: 0; color: grey;"><i>Movie App</i></h1>
+        </a>
+    </div>
+</header>
+<br>
+<h2>Login</h2>
+<form method="post">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <button type="submit">Login</button>
+    <br>
+    <br>
+    <p>Don't have an account? Create one <a href="/register">here</a></p>
+</form>
+{% endblock %}

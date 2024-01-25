@@ -1,0 +1,145 @@
+{% extends "home/base.html" %}
+
+{% block title %}
+    Comments
+{% endblock %}
+
+{% block main %}
+    <style>
+        header {
+            font-family: 'Fairwater Script'; 
+        }
+        
+    </style>
+    <header class="navbar navbar-dark" style="background: url('https://img.freepik.com/free-vector/film-strip-with-light-effect-cinema-background_1017-38171.jpg') no-repeat center center fixed; background-size: cover; height: 250px; display: flex; justify-content: space-between; align-items: flex-start; padding: 20px;">
+        <div>
+            <a href="/" style="text-decoration: none; color: grey;">
+                <h1 style="font-size: 70px; font-weight: bold; margin: 0; color: grey;"><i>Movie App</i></h1>
+            </a>
+        </div>
+        <form action="/search/" method="get" class="d-flex" style="align-items: flex-start; margin-right: 20px;">
+            <select class="form-select" name="type" style="width: 80px; height: 30px; margin-right: 10px; font-size: 12px; color: grey;">
+                <option value="movie">Movie</option>
+                <option value="tv">Tv Show</option>
+            </select>
+            <input type="text" class="form-control" placeholder="Search" name="q" style="height: 30px; width: 70%; max-width: 400px; color: grey;">
+            <button type="submit" class="btn btn-danger" style="height: 30px;">Go</button>
+        </form>
+    </header>
+    <br>
+
+    <h1>Comment page for {{ title }} </h1>
+    <form id="commentForm" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="comment">Comment:</label>
+            <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" id="submitComment">Submit</button>
+    </form>
+
+    {% for c in comments %}
+        <div>
+            {{ c.user }} on {{ c.created_at }} said: <br> {{ c.comment }}
+        </div>
+        <br>
+    {% endfor %}
+
+    <!-- Bootstrap Modal for comment confirmation -->
+    <div class="modal fade" id="commentConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="commentConfirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="commentConfirmationModalLabel">Comment Confirmation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to add this comment?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmComment">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Function to show the comment confirmation modal
+            function showConfirmationModal() {
+                $('#commentConfirmationModal').modal('show');
+            }
+
+            function fetchAndDisplayComments() {
+                let url;
+                {% if movie_id %}
+                    url = `{% url 'comment_page' movie_id=movie_id %}`;
+                {% else %}
+                    url = `{% url 'comment_page2' tv_id=tv_id %}`;
+                {% endif %}
+
+                console.log('Fetching comments from URL:', url);
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Received data:', data);
+
+                        // Update the comments container
+                        $('#commentsContainer').html('');
+                        data.comments.forEach(comment => {
+                            $('#commentsContainer').append(`
+                                <div>${comment.user} on ${comment.created_at} said: <br>${comment.comment}</div><br>
+                            `);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching comments:', error);
+                    });
+            }
+
+            // Event listener for the Submit button
+            $('#submitComment').on('click', function () {
+                // Show confirmation modal before submitting the comment
+                showConfirmationModal();
+            });
+
+            // Event listener for the Confirm button in the modal
+            $('#confirmComment').on('click', function () {
+                // Submit the form when the confirmation is confirmed
+                var formData = new FormData(document.getElementById('commentForm'));
+
+                fetch("{% if movie_id %}{% url 'comment_page' movie_id=movie_id %}{% else %}{% url 'comment_page2' tv_id=tv_id %}{% endif %}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Clear the form after successful submission
+                    document.getElementById('commentForm').reset();
+
+                    // Fetch and display updated comments without reloading the page
+                    fetchAndDisplayComments();
+                })
+                .catch(error => {
+                    console.error('Error submitting comment:', error);
+                })
+                .finally(function () {
+                    // Close the modal after handling the form submission
+                    $('#commentConfirmationModal').modal('hide');
+                });
+            });
+        });
+    </script>
+
+    <!-- Include Bootstrap JS (make sure it is included in your project) -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
